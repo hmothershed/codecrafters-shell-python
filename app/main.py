@@ -33,9 +33,7 @@ def run_external_program(cmd, args):
     path = shutil.which(cmd)
     if path:
         try:
-            program_name = os.path.basename(path)
             # Run the external program with arguments
-            sys.stdout.write(f"Running: {program_name} {' '.join(args)}\n")
             subprocess.run([path] + args)
         except Exception as e:
             sys.stdout.write(f"Error running {cmd}: {e}\n")
