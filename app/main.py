@@ -9,6 +9,7 @@ def main():
     command = input()
     print(f"{command}: command not found")
     main()
+    exit()
 
 
 if __name__ == "__main__":
