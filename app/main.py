@@ -3,18 +3,21 @@ import sys
 
 def main():
     while True:
-        sys.stdout.write("$ ")
-        
-        # Wait for user input
-        command, *args = input().split(" ")
+        # sys.stdout.write("$ ")
+        command = input("$ ")
 
-        match command:
-            case "exit":
+        match command.split():
+            case ["type", arg] if arg in ["echo", "exit", "type"]:
+                print(f"{arg} is a shell builtin")
+            case ["type", arg] if arg not in ["echo", "exit", "type"]:
+                print(f"{arg}: not found")
+            case ["exit", "0"]:
                 exit()
-            case "echo":
-                print(" ".join(args))
-            case default:
-                sys.stdout.write(f"{command}: command not found\n")
+            case ["echo", *args]:
+                print(*args)
+            case _:
+                print(f"{command}: command not found")
+                            
     return
 
 
