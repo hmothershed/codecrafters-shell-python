@@ -1,5 +1,6 @@
 import sys
 import shutil
+import subprocess
 
 builtin_cmds = {}
 
@@ -24,15 +25,30 @@ def shell_type(args):
     else:
         sys.stdout.write(f"{args[0]}: not found\n")
 
+def run_external_program(cmd, args):
+    # Find the path of the executable
+    path = shutil.which(cmd)
+    if path:
+        try:
+            # Run the external program with arguments
+            subprocess.run([path] + args)
+        except Exception as e:
+            sys.stdout.write(f"Error running {cmd}: {e}\n")
+    else:
+        sys.stdout.write(f"{cmd}: command not found\n")
+
 def main():
     while True:
         sys.stdout.write("$ ")
         command = input("")
+        if not command.strip():
+            continue
+
         cmd, *args = command.split()
         if cmd in builtin_cmds:
             builtin_cmds[cmd](args)
         else:
-            sys.stdout.write(f"{cmd}: command not found\n")
+            run_external_program(cmd, args)
     return
 
 
