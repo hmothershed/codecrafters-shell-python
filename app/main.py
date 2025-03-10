@@ -18,7 +18,7 @@ def shell_echo(args):
 @command
 def shell_type(args):
     if args[0] in builtin_cmds:
-        sys.stdout.write(f"{args[0]} is a shell builtin")
+        sys.stdout.write(f"{args[0]} is a shell builtin\n")
     elif path := shutil.which(args[0]):
         sys.stdout.write(f"{args[0]} is {path}\n")
     else:
