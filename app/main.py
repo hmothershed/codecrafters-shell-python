@@ -1,47 +1,42 @@
 import sys
 import os
 
-supported_commands = ["echo", "exit", "type"]
- 
-def find_command_in_path(command):
-    path_dirs = os.environ.get("PATH", "").split(os.pathsep)
-    for dir in path_dirs:
-        path = os.path.join(dir, command)
-        if os.path.isfile(path) and os.access(path, os.X_OK):
-            return path
-    return None
- 
-def echo(data: list):
-    print(" ".join(data))
- 
-def exit_cmd(data: list):
-    exit(int(data[0]))
- 
-def type_cmd(data: list):
-    if data[0] in supported_commands:
-        print(f"{data[0]} is a shell builtin")
-    elif path := find_command_in_path(data[0]):
-        print(f"{data[0]} is {path}")
-    else:
-        print(f"{data[0]} not found")
- 
 def main():
-    while True:
-        sys.stdout.write("$ ")
-        sys.stdout.flush()
-         # Wait for user input
-        command, *data = input().split(" ")
-        if command == "exit":
-            exit_cmd(data)
-        elif command == "echo":
-            echo(data)
-        elif command == "type":
-            type_cmd(data)
-        elif path := find_command_in_path(command):
+    # Uncomment this block to pass the first stage
+    sys.stdout.write("$ ")
+     # Wait for user input
+    paths = os.getenv("PATH").split(":")
+    inp = input().split(" ")
+    cmd = inp[0]
+    builtins = {"exit": "exit", "echo": "echo", "type": "type"}
+    commands = {}
+    for path in paths:
+        path = path + "/" if path[-1] != "/" else path
+        try:
+            for entry in os.listdir(path):
+                if entry not in builtins:
+                    commands.update({entry: path + entry})
+        except FileNotFoundError:
+            pass
+    if cmd == "exit":
+        exitval = 0 if not inp[1].isnumeric() else int(inp[1])
+        exit(exitval)
+    if cmd == "echo":
+        print(" ".join(inp[1:]))
+    if cmd == "type":
+        outp = f"{inp[1]}: not found"
+        if inp[1] in commands:
+            outp = f"{inp[1]} is {commands[inp[1]]}"
+        elif inp[1] in builtins:
+            outp = f"{inp[1]} is a shell builtin"
+        print(outp)
+    if cmd not in commands and cmd not in builtins:
+        print(f"{cmd}: command not found")
+    if cmd in commands:
+         os.system(" ".join(inp))
 
-            os.system(f"{path} {' '.join(data)}")
-        else:
-            print(f"{command}: command not found")
+
  
 if __name__ == "__main__":
-    main()
+    while True:
+        main()
