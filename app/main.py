@@ -1,12 +1,19 @@
 import sys
 import os
+import shlex
 
 def main():
     # Uncomment this block to pass the first stage
     sys.stdout.write("$ ")
 
-    # Wait for user input
-    inp = input().split(" ")
+    try: 
+        # Wait for user input
+        inp = input().strip()
+        inp = shlex.split(inp)
+    except ValueError as e:
+        print(f"Error parsing input: {e}")
+        return
+    
     cmd = inp[0]
     
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
