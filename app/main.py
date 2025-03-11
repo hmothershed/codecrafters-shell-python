@@ -1,12 +1,22 @@
 import sys
 import os
+import shlex
 
 def main():
     # Uncomment this block to pass the first stage
     sys.stdout.write("$ ")
 
     # Wait for user input
-    inp = input().split(" ")
+    # inp = input().split(" ")
+    inp = input().strip()
+
+    # split the input into command and arguments, taking care of single quotes
+    try:
+        inp = shlex.split(inp)  # shelx automatically handles single quotes and spaces
+    except:
+        print(f"Error parsing input: {e}")
+        return
+
     cmd = inp[0]
     
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
