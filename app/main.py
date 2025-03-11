@@ -8,6 +8,8 @@ def main():
     # Wait for user input
     inp = input().split(" ")
     cmd = inp[0]
+
+    os.environ["PATH"] = "/tmp/bar:" + os.environ["PATH"]
     
     # Built-in commands
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd"}
@@ -17,9 +19,6 @@ def main():
 
     # Get the PATH environment variable and split it into directories
     paths = os.getenv("PATH").split(":")
-    
-    # Prioritize /tmp/bar/ by moving it to the front of the PATH
-    paths = ['/tmp/bar/'] + [path for path in paths if path != '/tmp/bar/']
 
     # Iterate over the paths and collect commands
     for path in paths:
