@@ -1,55 +1,12 @@
 import sys
 import os
 
-def parse_input(input_string):
-    """
-    Parse the input string while respecting single and double quotes.
-    Returns a list of arguments, correctly handling quoted arguments.
-    """
-    args = []
-    current_arg = []
-    in_single_quote = False
-    in_double_quote = False
-    
-    i = 0
-    while i < len(input_string):
-        char = input_string[i]
-        
-        if char == "'" and not in_double_quote:  # Handling single quotes
-            if in_single_quote:
-                in_single_quote = False
-                args.append("".join(current_arg))
-                current_arg = []
-            else:
-                in_single_quote = True
-        elif char == '"' and not in_single_quote:  # Handling double quotes
-            if in_double_quote:
-                in_double_quote = False
-                args.append("".join(current_arg))
-                current_arg = []
-            else:
-                in_double_quote = True
-        elif char == " " and not in_single_quote and not in_double_quote:
-            if current_arg:
-                args.append("".join(current_arg))
-                current_arg = []
-        else:
-            current_arg.append(char)
-        
-        i += 1
-    
-    if current_arg:  # If there's any remaining argument not yet added
-        args.append("".join(current_arg))
-    
-    return args
-
 def main():
     # Uncomment this block to pass the first stage
     sys.stdout.write("$ ")
 
     # Wait for user input
     inp = input().split(" ")
-    inp = parse_input(inp)  #parse the input with quoting support
     cmd = inp[0]
     
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
