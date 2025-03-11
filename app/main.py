@@ -7,16 +7,7 @@ def main():
     sys.stdout.write("$ ")
 
     # Wait for user input
-    # inp = input().split(" ")
-    inp = input().strip()
-
-    # split the input into command and arguments, taking care of single quotes
-    try:
-        inp = shlex.split(inp)  # shelx automatically handles single quotes and spaces
-    except:
-        print(f"Error parsing input: {e}")
-        return
-
+    inp = input().split(" ")
     cmd = inp[0]
     
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
@@ -43,6 +34,10 @@ def main():
 
     # Handle the echo command
     if cmd == "echo":
+        args = shlex.split(inp)
+        for i in range(len(args)):
+            if (args[i].startswith("'") and args[i].endswith("'") or args[i].startswith('"') and args[i].endswith('"')):
+                args[i] = args[i][1:-1]
         print(" ".join(inp[1:]))
 
     # Handle the type command
