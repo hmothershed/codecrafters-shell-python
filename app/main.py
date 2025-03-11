@@ -55,6 +55,11 @@ def main():
             print("cd: missing operand") # No path provided
         else:
             new_dir = inp[1]
+
+            # Home directory
+            if new_dir == "~":
+                new_dir = os.path.expanduser("~")
+
             if os.path.isabs(new_dir): # Ensure absolute path
                 try:
                     os.chdir(new_dir)
