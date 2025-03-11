@@ -1,6 +1,7 @@
 import sys
 import os
 import shlex
+import subprocess
 
 def main():
     # Uncomment this block to pass the first stage
@@ -95,7 +96,8 @@ def main():
     # Handle external commands
     if cmd in commands:
          # os.system(" ".join(inp))
-         os.execvp(cmd, inp)
+         # os.execvp(cmd, inp)
+         subprocess.run(inp)
     
 
 
