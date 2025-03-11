@@ -34,6 +34,8 @@ def main():
         print(f"{cmd}: command not found")
     if cmd in commands:
          os.system(" ".join(inp))
+    if cmd == "pwd":
+        print(f"{os.getcwd()}")
 
 
  
