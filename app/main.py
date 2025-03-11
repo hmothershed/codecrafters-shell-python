@@ -13,6 +13,8 @@ def main():
     except ValueError as e:
         print(f"Error parsing input: {e}")
         return
+    if not inp:
+        return  #ignore empty input
     
     cmd = inp[0]
     
@@ -35,15 +37,15 @@ def main():
     
     # Handle the exit command
     if cmd == "exit":
-        exitval = 0 if not inp[1].isnumeric() else int(inp[1])
+        exitval = 0 if len(inp) == 1 else int(inp[1]) if inp[1].isnumeric() else 0
         exit(exitval)
 
     # Handle the echo command
-    if cmd == "echo":
+    elif cmd == "echo":
         print(" ".join(inp[1:]))
 
     # Handle the type command
-    if cmd == "type":
+    elif cmd == "type":
         if len(inp) > 1:
             outp = f"{inp[1]}: not found"
             if inp[1] in commands:
@@ -53,11 +55,11 @@ def main():
             print(outp)
 
     # Handle the pwd command (built-in)
-    if cmd == "pwd":
+    elif cmd == "pwd":
         print(os.getcwd())
     
     # Handle the cd command
-    if cmd == "cd":
+    elif cmd == "cd":
         if len(inp) < 2:
             print("cd: missing operand") # No path provided
         else:
@@ -92,7 +94,8 @@ def main():
     
     # Handle external commands
     if cmd in commands:
-         os.system(" ".join(inp))
+         # os.system(" ".join(inp))
+         os.execvp(cmd, inp)
     
 
 
