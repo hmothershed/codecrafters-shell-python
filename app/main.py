@@ -9,7 +9,7 @@ def main():
     inp = input().split(" ")
     cmd = inp[0]
     
-    builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd"}
+    builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
     commands = {}
 
     # Get the PATH environment variable and split it into directories
@@ -49,6 +49,24 @@ def main():
     if cmd == "pwd":
         print(os.getcwd())
     
+    # Handle the cd command
+    if cmd == "cd":
+        if len(inp) < 2:
+            print("cd: missing operand") # No path provided
+        else:
+            new_dir = inp[1]
+            if os.path.isabs(new_dir): # Ensure absolute path
+                try:
+                    os.chdir(new_dir)
+                except FileNotFoundError:
+                    print(f"cd: {new_dir}: No such file or directory")
+                except NotADirectoryError:
+                    print(f"cd: {new_dir}: Not a directory")
+                except PermissionError:
+                    print(f"cd: {new_dir}: Permission denied")
+            else:
+                print(f"cd: {new_dir}: Not an absolute path")
+
     # If the command is not found in builtins or PATH, report it
     elif cmd not in commands and cmd not in builtins:
         print(f"{cmd}: command not found")
