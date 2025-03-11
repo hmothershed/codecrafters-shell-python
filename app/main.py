@@ -66,7 +66,7 @@ def main():
                     print(f"cd: {new_dir}: Permission denied")
             else:   # Relative Path
                 try: # Join the relative path with the current working directory
-                    os.chdir(os.path.join(os.getwcd(), new_dir))
+                    os.chdir(os.path.join(os.getcwd(), new_dir))
                 except FileNotFoundError:
                     print(f"cd: {new_dir}: No such file or directory")
                 except NotADirectoryError:
