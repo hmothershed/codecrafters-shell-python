@@ -64,8 +64,15 @@ def main():
                     print(f"cd: {new_dir}: Not a directory")
                 except PermissionError:
                     print(f"cd: {new_dir}: Permission denied")
-            else:
-                print(f"cd: {new_dir}: Not an absolute path")
+            else:   # Relative Path
+                try: # Join the relative path with the current working directory
+                    os.chdir(os.path.join(os.getwcd(), new_dir))
+                except FileNotFoundError:
+                    print(f"cd: {new_dir}: No such file or directory")
+                except NotADirectoryError:
+                    print(f"cd: {new_dir}: Not a directory")
+                except PermissionError:
+                    print(f"cd: {new_dir}: Permission denied")
 
     # If the command is not found in builtins or PATH, report it
     elif cmd not in commands and cmd not in builtins:
