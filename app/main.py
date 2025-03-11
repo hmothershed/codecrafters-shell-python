@@ -8,13 +8,8 @@ def main():
     # Wait for user input
     inp = input().split(" ")
     cmd = inp[0]
-
-    os.environ["PATH"] = "/tmp/bar:" + os.environ["PATH"]
     
-    # Built-in commands
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd"}
-
-    # Commands found in PATH
     commands = {}
 
     # Get the PATH environment variable and split it into directories
@@ -22,11 +17,12 @@ def main():
 
     # Iterate over the paths and collect commands
     for path in paths:
-        path = path + "/" if path[-1] != "/" else path
+        if not path.endswith("/"):
+            path += "/"
         try:
             for entry in os.listdir(path):
-                if entry not in builtins:
-                    commands.update({entry: path + entry})
+                if entry not in builtins and entry not in commands:
+                    commands[entry] = path + entry
         except FileNotFoundError:
             pass
     
