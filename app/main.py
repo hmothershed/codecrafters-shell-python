@@ -138,15 +138,23 @@ def main():
          # os.system(" ".join(inp))
          # os.execvp(cmd, inp)
          try:
-            stdout_target = open(output_file, "w") if output_file else sys.stdout
-            stderr_target = open(error_file, "w") if error_file else sys.stderr
+            if output_file:
+                stdout_target = open(output_file, "w")
+            else:
+                stdout_target = sys.stdout
 
-            with stdout_target, stderr_target:
-                subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
+            if error_file:
+                stderr_target = open(error_file, "w")
+            else:
+                stderr_target = sys.stderr
+
+            subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
+
             if output_file:
                 stdout_target.close()
             if error_file:
                 stderr_target.close()
+            
          except FileNotFoundError:
              print(f"{cmd}: command not found")
 
