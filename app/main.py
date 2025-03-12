@@ -38,7 +38,7 @@ def main():
             error_index = tokens.index("2>")
             error_file = tokens[error_index + 1]    # get the error file
             tokens = tokens[:error_index]   # remove redirection part from command
-        except IndexError:
+        except:
             print("Syntax error: missing error file")
             return
         
@@ -135,15 +135,16 @@ def main():
                 
     # Handle external commands
     if cmd in commands:
-        # os.system(" ".join(inp))
-        # os.execvp(cmd, inp)
-        try:
-            with open(output_file, "w") if output_file else sys.stdout as f:
-               subprocess.run(tokens, stdout=f, stderr=sys.stderr)
-            with open(error_file, "w") if error_file else sys.stderr as f:
-                subprocess.run(tokens, stdout=sys.stdout, stderr=f)
-        except FileNotFoundError:
-            print(f"{cmd}: command not found")    
+         # os.system(" ".join(inp))
+         # os.execvp(cmd, inp)
+         try:
+            stdout_target = open(output_file, "w") if output_file else sys.stdout
+            stderr_target = open(error_file, "w") if error_file else sys.stderr
+
+            with stdout_target, stderr_target:
+                subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
+         except FileNotFoundError:
+             print(f"{cmd}: command not found")
 
     # If the command is not found in builtins or PATH, report it
     else:
