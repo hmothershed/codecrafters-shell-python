@@ -11,33 +11,29 @@ def main():
     try: 
         # Wait for user input
         inp = input().strip()
+        if not inp:
+            return  # ignore empty input
         tokens = shlex.split(inp)   # properly handle quoted strings
     except ValueError as e:
         print(f"Error parsing input: {e}")
         return
    
-    if not tokens:
-        return  # ignore empty input
+    
     
     # Check for output redirection
+    output_file = None
     if ">" in tokens or "1>" in tokens:
         try:
             redirect_index = tokens.index(">") if ">" in tokens else tokens.index("1>")
-            command_part = tokens[:redirect_index]
+            tokens = tokens[:redirect_index]
             output_file = tokens[redirect_index + 1]
-
-            if not command_part or not output_file:
-                print("Syntax error: missing command or output file")
-                return
         except IndexError:
             print("Syntax error: missing output file")
             return
-    else:
-        command_part = tokens
-        output_file = None
+    if not tokens:
+        return  # if only redirection was given, ignore it
 
-
-    cmd = command_part[0]
+    cmd = tokens[0]
     
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
     commands = {}
@@ -56,47 +52,47 @@ def main():
             pass
     
     # Built=in commands
-    def handle_builtin_output(output_text):
+    def handle_output(text):
         """Redirect output to file if needed, otherwise print."""
         if output_file:
             try:
                 with open(output_file, "w") as f:
-                    f.write(output_text + "\n")
+                    f.write(text + "\n")
             except IOError as e:
                 print(f"Error: {e}")
         else:
-            print(output_text)
+            print(text)
 
     # Handle the exit command
     if cmd == "exit":
         # exitval = 0 if len(inp) == 1 else int(inp[1]) if inp[1].isnumeric() else 0
         # exit(exitval)
-        exit(int(command_part[1]) if len(command_part) > 1 and command_part[1].isdigit() else 0)
+        exit(int(tokens[1]) if len(tokens) > 1 and tokens[1].isdigit() else 0)
 
     # Handle the echo command
     elif cmd == "echo":
-        handle_builtin_output(" ".join(command_part[1:]))
+        handle_output(" ".join(tokens[1:]))
 
     # Handle the type command
     elif cmd == "type":
-        if len(command_part) > 1:
-            outp = f"{command_part[1]}: not found"
-            if command_part[1] in commands:
-                outp = f"{command_part[1]} is {commands[command_part[1]]}"
-            elif command_part[1] in builtins:
-                outp = f"{command_part[1]} is a shell builtin"
-            handle_builtin_output(outp)
+        if len(tokens) > 1:
+            outp = f"{tokens[1]}: not found"
+            if tokens[1] in commands:
+                outp = f"{tokens[1]} is {commands[tokens[1]]}"
+            elif tokens[1] in builtins:
+                outp = f"{tokens[1]} is a shell builtin"
+            handle_output(outp)
 
     # Handle the pwd command (built-in)
     elif cmd == "pwd":
-        handle_builtin_output(os.getcwd())
+        handle_output(os.getcwd())
     
     # Handle the cd command
     elif cmd == "cd":
-        if len(command_part) < 2:
+        if len(tokens) < 2:
             print("cd: missing operand") # No path provided
         else:
-            new_dir = command_part[1]
+            new_dir = tokens[1]
 
             # Home directory
             if new_dir == "~":
@@ -126,11 +122,8 @@ def main():
          # os.system(" ".join(inp))
          # os.execvp(cmd, inp)
          try:
-            if output_file:
-                with open(output_file, "w") if output_file else sys.stdout as f:
-                    subprocess.run(command_part, stdout=f, stderr=sys.stderr)
-            else:
-                subprocess.run(command_part)
+            with open(output_file, "w") if output_file else sys.stdout as f:
+                subprocess.run(tokens, stdout=f, stderr=sys.stderr)
          except FileNotFoundError:
              print(f"{cmd}: command not found")
 
