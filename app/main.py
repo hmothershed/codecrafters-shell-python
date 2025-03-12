@@ -146,12 +146,15 @@ def main():
             stdout_target = open(output_file, "w") if output_file else sys.stdout
             stderr_target = open(error_file, "w") if error_file else sys.stderr
 
-            subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
+            result = subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
 
             if output_file:
                 stdout_target.close()
             if error_file:
                 stderr_target.close()
+
+            if result.returncode !=0 and error_file:
+                handle_output(f"{cmd}: command not found", error_file)
             
         except FileNotFoundError:
              print(f"{cmd}: command not found", error_file)
