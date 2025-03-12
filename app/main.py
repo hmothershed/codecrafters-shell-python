@@ -38,7 +38,7 @@ def main():
             error_index = tokens.index("2>")
             error_file = tokens[error_index + 1]    # get the error file
             tokens = tokens[:error_index]   # remove redirection part from command
-        except:
+        except IndexError:
             print("Syntax error: missing error file")
             return
         
