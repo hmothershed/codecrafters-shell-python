@@ -135,17 +135,29 @@ def main():
                 
     # Handle external commands
     if cmd in commands:
-         # os.system(" ".join(inp))
-         # os.execvp(cmd, inp)
-         try:
+        # os.system(" ".join(inp))
+        # os.execvp(cmd, inp)
+        try:
             stdout_target = open(output_file, "w") if output_file else None
             stderr_target = open(error_file, "w") if error_file else None
 
-            with stdout_target, stderr_target:
-                subprocess.run(tokens, stdout=stdout_target or sys.stdout, stderr=stderr_target or sys.stderr)
+            subprocess.run(tokens, stdout=stdout_target or sys.stdout, stderr=stderr_target or sys.stderr)
 
-         except FileNotFoundError:
-             print(f"{cmd}: command not found")
+        except FileNotFoundError:
+             print(f"{cmd}: command not found", file=sys.stderr)
+        except PermissionError:
+            print(f"{cmd}: permission denied", file=sys.stderr)
+        except Exception as e:
+            print(f"Error executing command: {e}", file=sys.stderr)
+
+        finally:
+            if stdout_target:
+                stdout_target.close()
+                 
+            if stderr_target:
+                stderr_target.close()
+                     
+             
 
     # If the command is not found in builtins or PATH, report it
     else:
