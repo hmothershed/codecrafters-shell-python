@@ -117,11 +117,11 @@ def main():
                 try:
                     os.chdir(new_dir)
                 except FileNotFoundError:
-                    print(f"cd: {new_dir}: No such file or directory")
+                    print(f"cd: {new_dir}: No such file or directory", file=sys.stsderr)
                 except NotADirectoryError:
-                    print(f"cd: {new_dir}: Not a directory")
+                    print(f"cd: {new_dir}: Not a directory", file=sys.stderr)
                 except PermissionError:
-                    print(f"cd: {new_dir}: Permission denied")
+                    print(f"cd: {new_dir}: Permission denied", file=sys.stderr)
             else:   # Relative Path
                 try: # Join the relative path with the current working directory
                     os.chdir(os.path.join(os.getcwd(), new_dir))
@@ -141,7 +141,7 @@ def main():
             if error_file:
                 error_dir = os.path.dirname(error_file)
                 if not os.path.exists(error_dir):
-                    os.makedirs(error_dir)
+                    os.makedirs(error_dir, exist_ok=True)
 
             stdout_target = open(output_file, "w") if output_file else sys.stdout
             stderr_target = open(error_file, "w") if error_file else sys.stderr
@@ -157,7 +157,13 @@ def main():
                 handle_output(f"{cmd}: command not found", error_file)
             
         except FileNotFoundError:
-             print(f"{cmd}: command not found", error_file)
+            #print(f"{cmd}: command not found", error_file)
+            error_message = f"{cmd}: command not found\n"
+            if error_file:
+                with open(error_file, "w") as f:
+                    f.write(error_message)
+            else:
+                sys.stderr.write(error_message)
         return
 
     # If the command is not found in builtins or PATH, report it
