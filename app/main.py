@@ -30,7 +30,7 @@ def main():
             tokens = tokens[:redirect_index]    # remove redirection part from command
         except IndexError:
             print("Syntax error: missing output file")
-            return
+        return
     
     # check stderr redirection
     if "2>" in tokens:
@@ -40,7 +40,7 @@ def main():
             tokens = tokens[:error_index]   # remove redirection part from command
         except:
             print("Syntax error: missing error file")
-            return
+        return
         
     if not tokens:
         return  # if only redirection was given, ignore it
@@ -147,7 +147,7 @@ def main():
                 error_dir = os.path.dirname(error_file)
                 if not os.path.exists(error_dir):
                     os.makedirs(error_dir)
-                    
+
                 stderr_target = open(error_file, "w")
             else:
                 stderr_target = sys.stderr
