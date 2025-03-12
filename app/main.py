@@ -72,6 +72,7 @@ def main():
     # Handle the echo command
     elif cmd == "echo":
         handle_output(" ".join(tokens[1:]))
+        return
 
     # Handle the type command
     elif cmd == "type":
