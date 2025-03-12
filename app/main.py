@@ -137,7 +137,7 @@ def main():
     if cmd in commands:
          # os.system(" ".join(inp))
          # os.execvp(cmd, inp)
-         try:
+        try:
             if error_file:
                 error_dir = os.path.dirname(error_file)
                 if not os.path.exists(error_dir):
@@ -153,8 +153,9 @@ def main():
             if error_file:
                 stderr_target.close()
             
-         except FileNotFoundError:
+        except FileNotFoundError:
              print(f"{cmd}: command not found")
+        return
 
     # If the command is not found in builtins or PATH, report it
     else:
