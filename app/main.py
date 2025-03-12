@@ -138,19 +138,13 @@ def main():
          # os.system(" ".join(inp))
          # os.execvp(cmd, inp)
          try:
-            if output_file:
-                stdout_target = open(output_file, "w")
-            else:
-                stdout_target = sys.stdout
-
             if error_file:
                 error_dir = os.path.dirname(error_file)
                 if not os.path.exists(error_dir):
                     os.makedirs(error_dir)
 
-                stderr_target = open(error_file, "w")
-            else:
-                stderr_target = sys.stderr
+            stdout_target = open(output_file, "w") if output_file else sys.stdout
+            stderr_target = open(error_file, "w") if error_file else sys.stderr
 
             subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
 
