@@ -59,8 +59,11 @@ def main():
     def handle_builtin_output(output_text):
         """Redirect output to file if needed, otherwise print."""
         if output_file:
-            with open(output_file, "w") as f:
-                f.write(output_text + "\n")
+            try:
+                with open(output_file, "w") as f:
+                    f.write(output_text + "\n")
+            except IOError as e:
+                print(f"Error: {e}")
         else:
             print(output_text)
 
@@ -117,18 +120,23 @@ def main():
                     print(f"cd: {new_dir}: Not a directory")
                 except PermissionError:
                     print(f"cd: {new_dir}: Permission denied")
-
-    # If the command is not found in builtins or PATH, report it
-    elif cmd not in commands and cmd not in builtins:
-        print(f"{cmd}: command not found")
     
     # Handle external commands
     if cmd in commands:
          # os.system(" ".join(inp))
          # os.execvp(cmd, inp)
-         with open(output_file, "w") if output_file else sys.stdout as f:
-             subprocess.run(command_part, stdout=f, stderr=sys.stderr)
-    
+         try:
+            if output_file:
+                with open(output_file, "w") if output_file else sys.stdout as f:
+                    subprocess.run(command_part, stdout=f, stderr=sys.stderr)
+            else:
+                subprocess.run(command_part)
+         except FileNotFoundError:
+             print(f"{cmd}: command not found")
+
+    # If the command is not found in builtins or PATH, report it
+    else:
+        print(f"{cmd}: command not found")
  
 if __name__ == "__main__":
     while True:
