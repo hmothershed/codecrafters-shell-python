@@ -138,26 +138,12 @@ def main():
         # os.system(" ".join(inp))
         # os.execvp(cmd, inp)
         try:
-            stdout_target = open(output_file, "w") if output_file else None
-            stderr_target = open(error_file, "w") if error_file else None
-
-            subprocess.run(tokens, stdout=stdout_target or sys.stdout, stderr=stderr_target or sys.stderr)
-
+            with open(output_file, "w") if output_file else sys.stdout as f:
+               subprocess.run(tokens, stdout=f, stderr=sys.stderr)
+            with open(error_file, "w") if error_file else sys.stderr as f:
+                subprocess.run(tokens, stdout=sys.stdout, stderr=f)
         except FileNotFoundError:
-             print(f"{cmd}: command not found", file=sys.stderr)
-        except PermissionError:
-            print(f"{cmd}: permission denied", file=sys.stderr)
-        except Exception as e:
-            print(f"Error executing command: {e}", file=sys.stderr)
-
-        finally:
-            if stdout_target:
-                stdout_target.close()
-                 
-            if stderr_target:
-                stderr_target.close()
-                     
-             
+            print(f"{cmd}: command not found")    
 
     # If the command is not found in builtins or PATH, report it
     else:
