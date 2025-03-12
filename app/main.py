@@ -143,6 +143,10 @@ def main():
 
             with stdout_target, stderr_target:
                 subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
+            if output_file:
+                stdout_target.close()
+            if error_file:
+                stderr_target.close()
          except FileNotFoundError:
              print(f"{cmd}: command not found")
 
