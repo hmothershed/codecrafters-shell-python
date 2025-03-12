@@ -64,11 +64,11 @@ def main():
             pass
     
     # Built=in commands
-    def handle_output(text):
+    def handle_output(text, file=None):
         """Redirect output to file if needed, otherwise print."""
-        if output_file:
+        if file:
             try:
-                with open(output_file, "w") as f:
+                with open(file, "w") as f:
                     f.write(text + "\n")
             except IOError as e:
                 print(f"Error: {e}")
@@ -154,12 +154,12 @@ def main():
                 stderr_target.close()
             
         except FileNotFoundError:
-             print(f"{cmd}: command not found")
+             print(f"{cmd}: command not found", error_file)
         return
 
     # If the command is not found in builtins or PATH, report it
     else:
-        print(f"{cmd}: command not found")
+        print(f"{cmd}: command not found", error_file)
  
 if __name__ == "__main__":
     while True:
