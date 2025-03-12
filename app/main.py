@@ -117,7 +117,11 @@ def main():
                     print(f"cd: {new_dir}: Not a directory")
                 except PermissionError:
                     print(f"cd: {new_dir}: Permission denied")
-    
+                    return
+                return
+            return
+        return
+                
     # Handle external commands
     if cmd in commands:
          # os.system(" ".join(inp))
