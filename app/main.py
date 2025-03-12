@@ -25,9 +25,6 @@ def main():
     if ">" in tokens or "1>" in tokens:
         try:
             redirect_index = tokens.index(">") if ">" in tokens else tokens.index("1>")
-            if redirect_index + 1 >= len(tokens):   # ensure there's a file after ">"
-                print("Syntax error: missing output file")
-                return
             output_file = tokens[redirect_index + 1]    # get the file to write to
             tokens = tokens[:redirect_index]    # remove redirection part from command
         except IndexError:
