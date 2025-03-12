@@ -83,7 +83,7 @@ def main():
 
     # Handle the echo command
     elif cmd == "echo":
-        handle_output(" ".join(tokens[1:]))
+        handle_output(" ".join(tokens[1:]), output_file)
         return
 
     # Handle the type command
@@ -94,12 +94,12 @@ def main():
                 outp = f"{tokens[1]} is {commands[tokens[1]]}"
             elif tokens[1] in builtins:
                 outp = f"{tokens[1]} is a shell builtin"
-            handle_output(outp)
+            handle_output(outp, output_file)
         return
     
     # Handle the pwd command (built-in)
     elif cmd == "pwd":
-        handle_output(os.getcwd())
+        handle_output(os.getcwd(), output_file)
         return
     
     # Handle the cd command
