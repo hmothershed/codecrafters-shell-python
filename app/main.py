@@ -6,25 +6,44 @@ import subprocess
 def main():
     # Uncomment this block to pass the first stage
     sys.stdout.write("$ ")
+    sys.stdout.flush()  # ensure the prompt appears immediately
 
     try: 
         # Wait for user input
         inp = input().strip()
-        inp = shlex.split(inp)
+        tokens = shlex.split(inp)   # properly handle quoted strings
     except ValueError as e:
         print(f"Error parsing input: {e}")
         return
-    if not inp:
-        return  #ignore empty input
+   
+    if not tokens:
+        return  # ignore empty input
     
-    cmd = inp[0]
+    # Check for output redirection
+    if ">" in tokens or "1>" in tokens:
+        try:
+            redirect_index = tokens.index(">") if ">" in tokens else tokens.index("1>")
+            command_part = tokens[:redirect_index]
+            output_file = tokens[redirect_index + 1]
+
+            if not command_part or not output_file:
+                print("Syntax error: missing command or output file")
+                return
+        except IndexError:
+            print("Syntax error: missing output file")
+            return
+    else:
+        command_part = tokens
+        output_file = None
+
+
+    cmd = command_part[0]
     
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
     commands = {}
 
     # Get the PATH environment variable and split it into directories
     paths = os.getenv("PATH").split(":")
-
     # Iterate over the paths and collect commands
     for path in paths:
         if not path.endswith("/"):
@@ -36,35 +55,45 @@ def main():
         except FileNotFoundError:
             pass
     
+    # Built=in commands
+    def handle_builtin_output(output_text):
+        """Redirect output to file if needed, otherwise print."""
+        if output_file:
+            with open(output_file, "w") as f:
+                f.write(output_text + "\n")
+        else:
+            print(output_text)
+
     # Handle the exit command
     if cmd == "exit":
-        exitval = 0 if len(inp) == 1 else int(inp[1]) if inp[1].isnumeric() else 0
-        exit(exitval)
+        # exitval = 0 if len(inp) == 1 else int(inp[1]) if inp[1].isnumeric() else 0
+        # exit(exitval)
+        exit(int(command_part[1]) if len(command_part) > 1 and command_part[1].isdigit() else 0)
 
     # Handle the echo command
     elif cmd == "echo":
-        print(" ".join(inp[1:]))
+        handle_builtin_output(" ".join(command_part[1:]))
 
     # Handle the type command
     elif cmd == "type":
-        if len(inp) > 1:
-            outp = f"{inp[1]}: not found"
-            if inp[1] in commands:
-                outp = f"{inp[1]} is {commands[inp[1]]}"
-            elif inp[1] in builtins:
-                outp = f"{inp[1]} is a shell builtin"
-            print(outp)
+        if len(command_part) > 1:
+            outp = f"{command_part[1]}: not found"
+            if command_part[1] in commands:
+                outp = f"{command_part[1]} is {commands[command_part[1]]}"
+            elif command_part[1] in builtins:
+                outp = f"{command_part[1]} is a shell builtin"
+            handle_builtin_output(outp)
 
     # Handle the pwd command (built-in)
     elif cmd == "pwd":
-        print(os.getcwd())
+        handle_builtin_output(os.getcwd())
     
     # Handle the cd command
     elif cmd == "cd":
-        if len(inp) < 2:
+        if len(command_part) < 2:
             print("cd: missing operand") # No path provided
         else:
-            new_dir = inp[1]
+            new_dir = command_part[1]
 
             # Home directory
             if new_dir == "~":
@@ -97,10 +126,9 @@ def main():
     if cmd in commands:
          # os.system(" ".join(inp))
          # os.execvp(cmd, inp)
-         subprocess.run(inp)
+         with open(output_file, "w") if output_file else sys.stdout as f:
+             subprocess.run(command_part, stdout=f, stderr=sys.stderr)
     
-
-
  
 if __name__ == "__main__":
     while True:
