@@ -144,6 +144,9 @@ def main():
                 stdout_target = sys.stdout
 
             if error_file:
+                error_dir = os.path.dirname(error_file)
+                if not os.path.exists(error_dir):
+                    os.makedirs(error_dir)
                 stderr_target = open(error_file, "w")
             else:
                 stderr_target = sys.stderr
