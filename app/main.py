@@ -20,7 +20,7 @@ def main():
    
     
     
-    # Check for output redirection
+    # check for stdout redirection
     output_file = None
     if ">" in tokens or "1>" in tokens:
         try:
@@ -30,6 +30,17 @@ def main():
         except IndexError:
             print("Syntax error: missing output file")
             return
+    
+    # check stderr redirection
+    if "2>" in tokens:
+        try:
+            error_index = tokens.index("2>")
+            error_file = tokens[error_index + 1]    # get the error file
+            tokens = tokens[:error_index]   # remove redirection part from command
+        except:
+            print("Syntax error: missing error file")
+            return
+        
     if not tokens:
         return  # if only redirection was given, ignore it
 
@@ -126,11 +137,11 @@ def main():
          # os.system(" ".join(inp))
          # os.execvp(cmd, inp)
          try:
-            if output_file:
-                with open(output_file, "w") as f:
-                    subprocess.run(tokens, stdout=f, stderr=sys.stderr)
-            else:
-                subprocess.run(tokens, stdout=sys.stdout, stderr=sys.stderr)
+            stdout_target = open(output_file, "w") if output_file else sys.stdout
+            stderr_target = open(error_file, "w") if error_file else sys.stderr
+
+            with stdout_target, stderr_target:
+                subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
          except FileNotFoundError:
              print(f"{cmd}: command not found")
 
