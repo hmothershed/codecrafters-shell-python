@@ -22,6 +22,7 @@ def main():
     
     # check for stdout redirection
     output_file = None
+    error_file = None
     if ">" in tokens or "1>" in tokens:
         try:
             redirect_index = tokens.index(">") if ">" in tokens else tokens.index("1>")
