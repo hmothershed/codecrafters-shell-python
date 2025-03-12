@@ -83,10 +83,12 @@ def main():
             elif tokens[1] in builtins:
                 outp = f"{tokens[1]} is a shell builtin"
             handle_output(outp)
-
+        return
+    
     # Handle the pwd command (built-in)
     elif cmd == "pwd":
         handle_output(os.getcwd())
+        return
     
     # Handle the cd command
     elif cmd == "cd":
@@ -117,9 +119,6 @@ def main():
                     print(f"cd: {new_dir}: Not a directory")
                 except PermissionError:
                     print(f"cd: {new_dir}: Permission denied")
-                    return
-                return
-            return
         return
                 
     # Handle external commands
