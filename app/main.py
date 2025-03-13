@@ -55,6 +55,15 @@ def main():
             return
     
     # append stderr
+    elif "2>>" in tokens:
+        try:
+            redirect_index = tokens.index("2>>")
+            error_file = tokens[redirect_index + 1]
+            append_mode = True
+            tokens = tokens[:redirect_index]
+        except IndexError:
+            print("Syntax error: missing error file")
+            return
 
     if not tokens:
         return  # if only redirection was given, ignore it
@@ -99,7 +108,8 @@ def main():
             try:
                 # make sure directory exists before writing
                 os.makedirs(os.path.dirname(error_file), exist_ok=True)
-                with open(error_file, "w") as f:
+                mode = "a" if append_mode else "w"
+                with open(error_file, mode) as f:
                     f.write(error_text + "\n")
             except IOError as e:
                 print(f"Error: {e}", file=sys.stderr)
@@ -178,7 +188,7 @@ def main():
         try:
             mode = "a" if append_mode else "w"
             out_f = open(output_file, mode) if output_file else None
-            err_f = open(error_file, "w") if error_file else None
+            err_f = open(error_file, mode) if error_file else None
             
             subprocess.run(tokens, stdout=out_f if out_f else sys.stdout, stderr=err_f if err_f else sys.stderr)
 
