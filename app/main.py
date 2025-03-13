@@ -17,12 +17,21 @@ def main():
     except ValueError as e:
         print(f"Error parsing input: {e}")
         return
-   
     
-    
-    # check for stdout redirection
+    # check for stdout and stderr redirection
     output_file = None
     error_file = None
+
+    if "2>" in tokens:
+        try:
+            redirect_index = tokens.index("2>")
+            error_file = tokens[redirect_index + 1]
+            tokens = tokens[:redirect_index]
+        except IndexError:
+            print("Syntax error: missing error file", file=sys.stderr)
+            return
+        
+
     if ">" in tokens or "1>" in tokens:
         try:
             redirect_index = tokens.index(">") if ">" in tokens else tokens.index("1>")
@@ -30,17 +39,7 @@ def main():
             tokens = tokens[:redirect_index]    # remove redirection part from command
         except IndexError:
             print("Syntax error: missing output file")
-        return
-    
-    # check stderr redirection
-    if "2>" in tokens:
-        try:
-            error_index = tokens.index("2>")
-            error_file = tokens[error_index + 1]    # get the error file
-            tokens = tokens[:error_index]   # remove redirection part from command
-        except:
-            print("Syntax error: missing error file")
-        return
+            return
         
     if not tokens:
         return  # if only redirection was given, ignore it
@@ -63,17 +62,32 @@ def main():
         except FileNotFoundError:
             pass
     
-    # Built=in commands
-    def handle_output(text, file=None):
+    # Built-in commands
+    def handle_output(text):
         """Redirect output to file if needed, otherwise print."""
-        if file:
+        if output_file:
             try:
-                with open(file, "w") as f:
+                # make sure directory exists before writing
+                os.makedirs(os.path.dirname(output_file), exist_ok=True)
+                with open(output_file, "w") as f:
                     f.write(text + "\n")
             except IOError as e:
-                print(f"Error: {e}")
+                print(f"Error: {e}", file=sys.stderr)
         else:
             print(text)
+
+    def handle_error(error_text):
+        """Redirect error output to file if needed, otherwise print to stderr"""
+        if error_file:
+            try:
+                # make sure directory exists before writing
+                os.makedirs(os.path.dirname(error_file), exist_ok=True)
+                with open(error_file, "w") as f:
+                    f.write(error_text + "\n")
+            except IOError as e:
+                print(f"Error: {e}", file=sys.stderr)
+        else:
+            print(error_text, file=sys.stderr)
 
     # Handle the exit command
     if cmd == "exit":
@@ -83,7 +97,16 @@ def main():
 
     # Handle the echo command
     elif cmd == "echo":
-        handle_output(" ".join(tokens[1:]), output_file)
+        message = " ".join(tokens[1:])
+
+        if error_file:
+            try:
+                os.makedirs(os.path.dirname(error_file), exist_ok=True)
+                open(error_file, "w").close()
+            except IOError as e:
+                print(f"Error: {e}", file=sys.stderr)
+
+        handle_output(message)
         return
 
     # Handle the type command
@@ -94,18 +117,18 @@ def main():
                 outp = f"{tokens[1]} is {commands[tokens[1]]}"
             elif tokens[1] in builtins:
                 outp = f"{tokens[1]} is a shell builtin"
-            handle_output(outp, output_file)
+            handle_output(outp)
         return
     
     # Handle the pwd command (built-in)
     elif cmd == "pwd":
-        handle_output(os.getcwd(), output_file)
+        handle_output(os.getcwd())
         return
     
     # Handle the cd command
     elif cmd == "cd":
         if len(tokens) < 2:
-            print("cd: missing operand") # No path provided
+            handle_error("cd: missing operand") # No path provided
         else:
             new_dir = tokens[1]
 
@@ -117,59 +140,44 @@ def main():
                 try:
                     os.chdir(new_dir)
                 except FileNotFoundError:
-                    print(f"cd: {new_dir}: No such file or directory", file=sys.stsderr)
+                    handle_error(f"cd: {new_dir}: No such file or directory")
                 except NotADirectoryError:
-                    print(f"cd: {new_dir}: Not a directory", file=sys.stderr)
+                    handle_error(f"cd: {new_dir}: Not a directory")
                 except PermissionError:
-                    print(f"cd: {new_dir}: Permission denied", file=sys.stderr)
+                    handle_error(f"cd: {new_dir}: Permission denied")
             else:   # Relative Path
                 try: # Join the relative path with the current working directory
                     os.chdir(os.path.join(os.getcwd(), new_dir))
                 except FileNotFoundError:
-                    print(f"cd: {new_dir}: No such file or directory")
+                    handle_error(f"cd: {new_dir}: No such file or directory")
                 except NotADirectoryError:
-                    print(f"cd: {new_dir}: Not a directory")
+                    handle_error(f"cd: {new_dir}: Not a directory")
                 except PermissionError:
-                    print(f"cd: {new_dir}: Permission denied")
+                    handle_error(f"cd: {new_dir}: Permission denied")
         return
-                
+  
     # Handle external commands
     if cmd in commands:
-         # os.system(" ".join(inp))
-         # os.execvp(cmd, inp)
         try:
-            if error_file:
-                error_dir = os.path.dirname(error_file)
-                if not os.path.exists(error_dir):
-                    os.makedirs(error_dir, exist_ok=True)
-
-            stdout_target = open(output_file, "w") if output_file else sys.stdout
-            stderr_target = open(error_file, "w") if error_file else sys.stderr
-
-            result = subprocess.run(tokens, stdout=stdout_target, stderr=stderr_target)
-
-            if output_file:
-                stdout_target.close()
-            if error_file:
-                stderr_target.close()
-
-            if result.returncode !=0 and error_file:
-                handle_output(f"{cmd}: command not found", error_file)
+            out_f = open(output_file, "w") if output_file else None
+            err_f = open(error_file, "w") if error_file else None
             
+            subprocess.run(tokens, stdout=out_f if out_f else sys.stdout, stderr=err_f if err_f else sys.stderr)
+
+            if out_f:
+                out_f.close()
+                return
+            if err_f:
+                err_f.close()
+                return
         except FileNotFoundError:
-            #print(f"{cmd}: command not found", error_file)
-            error_message = f"{cmd}: command not found\n"
-            if error_file:
-                with open(error_file, "w") as f:
-                    f.write(error_message)
-            else:
-                sys.stderr.write(error_message)
+            handle_error(f"{cmd}: command not found")
         return
 
     # If the command is not found in builtins or PATH, report it
     else:
-        print(f"{cmd}: command not found", error_file)
- 
+        print(f"{cmd}: command not found")
+
 if __name__ == "__main__":
     while True:
         main()
