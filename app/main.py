@@ -5,12 +5,31 @@ import subprocess
 import readline
 
 def completer(text, state):
-    """Autocomplete built-in commands"""
+    """Autocomplete built-in commands and external executables"""
     builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
-    options = [cmd + " " for cmd in builtins.keys() if cmd.startswith(text)]
-    if state < len(options):
-        return options[state]   # return matching command
-    return None
+
+    # collect all executables from PATH
+    executables = set(builtins) # start with builtins
+    paths = os.getenv("PATH", "").split(":")
+
+    for path in paths:
+        if os.path.isdir(path):
+            try:
+                for entry in os.listdir(path):  # ensure the directory exists
+                    full_path = os.path.join(path, entry)
+                    if os.access(full_path, os.X_OK):   # check if it's executable
+                        executables.add(entry)
+            except PermissionError:
+                continue    # ignore directories we can't access
+
+    # filter matches that start with user input 
+    matches = [cmd + " " for cmd in executables if cmd.startswith(text)]
+    return matches[state] if state < len(matches) else None
+    
+    # options = [cmd + " " for cmd in builtins.keys() if cmd.startswith(text)]
+    # if state < len(options):
+    #     return options[state]   # return matching command
+    # return None
 
 def main():
     # Uncomment this block to pass the first stage
@@ -199,7 +218,7 @@ def main():
             out_f = open(output_file, mode) if output_file else None
             err_f = open(error_file, mode) if error_file else None
             
-            subprocess.run(tokens, stdout=out_f if out_f else sys.stdout, stderr=err_f if err_f else sys.stderr)
+            subprocess.run(tokens, stdout=out_f if out_f else sys.stdout, stderr=err_f if err_f else sys.stderr, text=True)
 
             if out_f:
                 out_f.close()
@@ -217,6 +236,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # set up readline for tab completion
     readline.parse_and_bind("tab: complete")
     readline.set_completer(completer)
     while True:
