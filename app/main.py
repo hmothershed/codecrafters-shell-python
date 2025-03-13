@@ -7,10 +7,9 @@ import readline
 # track previous tab press state
 previous_text = None
 tab_press_count = 0
-cached_options = []
 
 def get_executables():
-    """Retrieve a list of executable commands from PATH."""
+    """Retrieve a list of executable commands from PATH"""
     executables = set()
     paths = os.getenv("PATH", "").split(":")
 
@@ -22,9 +21,21 @@ def get_executables():
                     executables.add(entry)
     return executables
 
+def find_longest_common_prefix(options, text):
+    """Find the longes common prefix among matching options"""
+    if not options:
+        return text
+    prefix = options[0]
+    for option in options[1:]:
+        i = 0
+        while i < len(prefix) and i < len(option) and prefix[i] == option[i]:
+            i += 1
+        prefix = prefix[:i]     # trim prefix to common match
+    return prefix if prefix.startswith(text) else text
+
 def completer(text, state):
     """Autocomplete built-in commands and executables"""
-    global previous_text, tab_press_count, cached_options
+    global previous_text, tab_press_count
     builtins = {"exit", "echo", "type", "pwd", "cd"}
 
     executables = get_executables()
@@ -36,9 +47,13 @@ def completer(text, state):
         else:
             tab_press_count = 1     # reset count for new input
         previous_text = text    # store current input
-        cached_options = options
 
         if len(options) > 1:
+            common_prefix = find_longest_common_prefix(options, text)
+            # if common prefix extends beyond user input, complete to it
+            if common_prefix != text:
+                return common_prefix
+            
             if tab_press_count == 1:
                 print("\a", end="", flush=True)     # ring bell for first <TAB>
                 return None
