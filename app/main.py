@@ -4,32 +4,52 @@ import shlex
 import subprocess
 import readline
 
-def completer(text, state):
-    """Autocomplete built-in commands and external executables"""
-    builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
+# track previous tab press state
+previous_text = None
+tab_press_count = 0
+cached_options = []
 
-    # collect all executables from PATH
-    executables = set(builtins) # start with builtins
+def get_executables():
+    """Retrieve a list of executable commands from PATH."""
+    executables = set()
     paths = os.getenv("PATH", "").split(":")
 
     for path in paths:
         if os.path.isdir(path):
-            try:
-                for entry in os.listdir(path):  # ensure the directory exists
-                    full_path = os.path.join(path, entry)
-                    if os.access(full_path, os.X_OK):   # check if it's executable
-                        executables.add(entry)
-            except PermissionError:
-                continue    # ignore directories we can't access
+            for entry in os.listdir(path):
+                full_path = os.path.join(path, entry)
+                if os.access(full_path, os.X_OK) and not os.path.isdir(full_path):
+                    executables.add(entry)
+    return executables
 
-    # filter matches that start with user input 
-    matches = [cmd + " " for cmd in executables if cmd.startswith(text)]
-    return matches[state] if state < len(matches) else None
-    
-    # options = [cmd + " " for cmd in builtins.keys() if cmd.startswith(text)]
-    # if state < len(options):
-    #     return options[state]   # return matching command
-    # return None
+def completer(text, state):
+    """Autocomplete built-in commands and executables"""
+    global previous_text, tab_press_count, cached_options
+    builtins = {"exit", "echo", "type", "pwd", "cd"}
+
+    executables = get_executables()
+    options = sorted([cmd for cmd in builtins | executables if cmd.startswith(text)])
+
+    if state == 0:
+        if text == previous_text:
+            tab_press_count += 1
+        else:
+            tab_press_count = 1     # reset count for new input
+        previous_text = text    # store current input
+        cached_options = options
+
+        if len(options) > 1:
+            if tab_press_count == 1:
+                print("\a", end="", flush=True)     # ring bell for first <TAB>
+                return None
+            elif tab_press_count == 2:
+                print("\n" + "  ".join(options))     # print matches on second<TAB>
+                print(f"$ {text}", end="", flush=True)     # display prompt again
+                tab_press_count = 0     # reset counter
+                return None
+            
+    return options[state] + " " if state < len(options) else None
+
 
 def main():
     # Uncomment this block to pass the first stage
