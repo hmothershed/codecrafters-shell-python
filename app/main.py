@@ -18,20 +18,12 @@ def main():
         print(f"Error parsing input: {e}")
         return
     
-    # check for stdout and stderr redirection
+    # check for stdout/stderr redirection and append
     output_file = None
     error_file = None
+    append_mode = False
 
-    if "2>" in tokens:
-        try:
-            redirect_index = tokens.index("2>")
-            error_file = tokens[redirect_index + 1]
-            tokens = tokens[:redirect_index]
-        except IndexError:
-            print("Syntax error: missing error file", file=sys.stderr)
-            return
-        
-
+    # redirect stdout
     if ">" in tokens or "1>" in tokens:
         try:
             redirect_index = tokens.index(">") if ">" in tokens else tokens.index("1>")
@@ -40,7 +32,30 @@ def main():
         except IndexError:
             print("Syntax error: missing output file")
             return
-        
+    
+    # append stdout
+    elif ">>" in tokens or "1>>" in tokens:
+        try:
+            redirect_index = tokens.index(">>") if ">>" in tokens else tokens.index("1>>")
+            output_file = tokens[redirect_index + 1]
+            append_mode = True
+            tokens = tokens[:redirect_index]
+        except IndexError:
+            print("Syntax error: missing output file")
+            return
+
+    # redirect stderr
+    if "2>" in tokens:
+        try:
+            redirect_index = tokens.index("2>")
+            error_file = tokens[redirect_index + 1]
+            tokens = tokens[:redirect_index]
+        except IndexError:
+            print("Syntax error: missing error file", file=sys.stderr)
+            return
+    
+    # append stderr
+
     if not tokens:
         return  # if only redirection was given, ignore it
 
@@ -69,7 +84,9 @@ def main():
             try:
                 # make sure directory exists before writing
                 os.makedirs(os.path.dirname(output_file), exist_ok=True)
-                with open(output_file, "w") as f:
+                # check if append mode is active
+                mode = "a" if append_mode else "w"
+                with open(output_file, mode) as f:
                     f.write(text + "\n")
             except IOError as e:
                 print(f"Error: {e}", file=sys.stderr)
@@ -159,7 +176,8 @@ def main():
     # Handle external commands
     if cmd in commands:
         try:
-            out_f = open(output_file, "w") if output_file else None
+            mode = "a" if append_mode else "w"
+            out_f = open(output_file, mode) if output_file else None
             err_f = open(error_file, "w") if error_file else None
             
             subprocess.run(tokens, stdout=out_f if out_f else sys.stdout, stderr=err_f if err_f else sys.stderr)
