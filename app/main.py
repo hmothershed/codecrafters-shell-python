@@ -2,6 +2,15 @@ import sys
 import os
 import shlex
 import subprocess
+import readline
+
+def completer(text, state):
+    """Autocomplete built-in commands"""
+    builtins = {"exit": "exit", "echo": "echo", "type": "type", "pwd": "pwd", "cd": "cd"}
+    options = [cmd + " " for cmd in builtins.keys() if cmd.startswith(text)]
+    if state < len(options):
+        return options[state]   # return matching command
+    return None
 
 def main():
     # Uncomment this block to pass the first stage
@@ -206,6 +215,9 @@ def main():
     else:
         print(f"{cmd}: command not found")
 
+
 if __name__ == "__main__":
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer(completer)
     while True:
         main()
